@@ -60,15 +60,25 @@ export class MemoryCRAuthManager implements CRAuthManager {
 
   private extractAddress (hash: string, signature: string): string | null {
     const hashBuf = new Buffer(hash.split('x')[1], 'hex')
-
+    console.log("Auth Hash \n" + hashBuf.toString('hex'))
     let pub
 
     try {
       const sig = util.fromRpcSig(signature)
       const prefix = new Buffer(MemoryCRAuthManager.ETH_PREAMBLE)
+      console.log('prefix\n',prefix.toString('hex'));
+      const independentMsg = Buffer.concat([prefix, new Buffer(String(hashBuf.length)), hashBuf])
+      console.log('msg to hash\n', independentMsg.toString('hex'))
+      const indMsg = util.sha3(independentMsg)
+      console.log('ind hashed msg\n', indMsg.toString('hex'))
+
+      console.log("biffer",Buffer.concat([prefix, new Buffer(String(hashBuf.length)), hashBuf]))
       const msg = new util.sha3(
-        Buffer.concat([prefix, new Buffer(String(hashBuf.length)), hashBuf])
+        independentMsg.toString('hex')
       )
+      console.log("final msg hashed\n", msg.toString('hex'));
+
+
 
       pub = util.ecrecover(msg, sig.v, sig.r, sig.s)
     } catch (e) {
