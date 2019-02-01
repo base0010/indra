@@ -66,21 +66,26 @@ export class MemoryCRAuthManager implements CRAuthManager {
     try {
       const sig = util.fromRpcSig(signature)
       const prefix = new Buffer(MemoryCRAuthManager.ETH_PREAMBLE)
-      console.log('prefix\n',prefix.toString('hex'));
-      const independentMsg = Buffer.concat([prefix, new Buffer(String(hashBuf.length)), hashBuf])
-      console.log('msg to hash\n', independentMsg.toString('hex'))
-      const indMsg = util.sha3(independentMsg)
-      console.log('ind hashed msg\n', indMsg.toString('hex'))
+      console.log('Prefix Hex\n',prefix.toString('hex'));
+      console.log('Prefix + Length Hex:\n', Buffer.concat([prefix, new Buffer(String(hashBuf.length))]).toString('hex'))
 
-      console.log("biffer",Buffer.concat([prefix, new Buffer(String(hashBuf.length)), hashBuf]))
+      const prefixAuth = Buffer.concat([prefix, new Buffer(String(hashBuf.length)), hashBuf])
+      console.log("Buffer Object\n",prefixAuth, "and type is", typeof(prefixAuth))
+
+      console.log('Prefixed Auth Hex\n', prefixAuth.toString('hex'))
+      const newMsg = util.sha3(prefixAuth.toString('hex'))
+      console.log('New Hashed Message\n', newMsg.toString('hex'))
+
+
+      //Current Code
       const msg = new util.sha3(
-        independentMsg.toString('hex')
+        Buffer.concat([prefix, new Buffer(String(hashBuf.length)), hashBuf])
       )
-      console.log("final msg hashed\n", msg.toString('hex'));
+      console.log("CurrentHash\n", msg.toString('hex'));
 
 
 
-      pub = util.ecrecover(msg, sig.v, sig.r, sig.s)
+      pub = util.ecrecover(newMsg, sig.v, sig.r, sig.s)
     } catch (e) {
       LOG.warn('Caught error trying to recover public key:', e)
       return null
